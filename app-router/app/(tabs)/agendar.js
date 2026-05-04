@@ -1,23 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Alert, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useContext } from 'react';
+import { AppDataContext } from '../../context/AppDataContext';
 import RNPickerSelect from 'react-native-picker-select';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router'
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { setRefresh } from '../../utils/refreshFlag';
 
 const horariosBase = [
-  '07:00','08:00','09:00','10:00','11:00','12:00',
-  '13:00','14:00','15:00','16:00','17:00','18:00',
-  '19:00','20:00','21:00','22:00'
+  '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
+  '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+  '19:00', '20:00', '21:00', '22:00'
 ];
 
 export default function Agendar() {
+  const { criarAgendamento } = useContext(AppDataContext);
   const [unidade, setUnidade] = useState(null);
   const [lab, setLab] = useState(null);
   const [data, setData] = useState(null);
   const [horario, setHorario] = useState(null);
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
   const [horariosDisponiveis, setHorariosDisponiveis] = useState(
     horariosBase.map(hora => ({ hora, ocupado: false }))
   );
@@ -48,58 +53,44 @@ export default function Agendar() {
   }, [data, lab, unidade]);
 
   const handleAgendar = async () => {
+    setErro('');
+    setSucesso('');
+
     if (!unidade || !lab || !data || !horario) {
-      Alert.alert("Atenção", "Preencha tudo");
+      setErro('Preencha todos os campos');
       return;
     }
 
     if (isHorarioPassado(horario)) {
-      Alert.alert("Erro", "Esse horário já passou");
+      setErro('Esse horário já passou');
       return;
     }
 
-    const chave = `${data}-${lab}-${unidade}`;
+    const novoAgendamento = {
+      id: `${data}-${unidade}-${lab}-${horario}`,
+      unidade,
+      lab,
+      data,
+      horario,
+    };
 
-    try {
-      const dadosSalvos = await AsyncStorage.getItem(chave);
-      let horariosOcupados = dadosSalvos ? JSON.parse(dadosSalvos) : [];
+    const res = await criarAgendamento(novoAgendamento);
 
-      if (horariosOcupados.some(ag => ag.horario === horario)) {
-        Alert.alert("Erro", "Horário já ocupado!");
-        return;
-      }
-
-      const novoAgendamento = {
-        id: `${data}-${unidade}-${lab}-${horario}`, // string única
-        unidade: unidade,
-        lab: lab,
-        data: data,
-        horario: horario
-      };
-
-      horariosOcupados.push(novoAgendamento);
-
-      await AsyncStorage.setItem(chave, JSON.stringify(horariosOcupados));
-
-      // Atualiza UI na hora
-      setHorariosDisponiveis((prev) =>
-        prev.map((h) =>
-          h.hora === horario ? { ...h, ocupado: true } : h
-        )
-      );
-
-      Alert.alert(
-        "Sucesso",
-        `Agendamento realizado!\n\nUnidade: ${unidade}\nLab: ${lab}\nData: ${new Date(data).toLocaleDateString('pt-BR')}\nHorário: ${horario}`
-      );
-
-      setRefresh(true);
-      router.push('/home');
-
-      setHorario(null);
-    } catch (error) {
-      console.log(error);
+    if (res?.error) {
+      setErro(res.error);
+      return;
     }
+
+    setSucesso('Agendamento realizado com sucesso!');
+    setHorario(null);
+
+    await criarAgendamento(novoAgendamento);
+
+    await carregarHorarios();
+
+    setTimeout(() => {
+      router.push('/home');
+    }, 1200);
   };
 
   const isHorarioPassado = (horaSelecionada) => {
@@ -113,7 +104,7 @@ export default function Agendar() {
 
     // Data antiga
     if (data < dataSelecionada) return true;
-    
+
     const [hora, minuto] = horaSelecionada.split(':').map(Number);
     const minutosAgora = (agora.getHours() * 60) + agora.getMinutes();
     const minutosSelecionados = (hora * 60) + minuto;
@@ -200,6 +191,9 @@ export default function Agendar() {
         </View>
       </View>
 
+      {erro ? <Text style={styles.error}>{erro}</Text> : null}
+      {sucesso ? <Text style={styles.success}>{sucesso}</Text> : null}
+
       <TouchableOpacity style={styles.button} onPress={handleAgendar}>
         <Text style={styles.buttonText}>Agendar</Text>
       </TouchableOpacity>
@@ -263,6 +257,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+
+  success: {
+    color: 'green',
+    marginTop: 10,
+    textAlign: 'center',
   },
 });
 

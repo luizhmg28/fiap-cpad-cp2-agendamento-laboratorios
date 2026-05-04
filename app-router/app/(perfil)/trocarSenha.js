@@ -9,40 +9,55 @@ import { useRouter } from 'expo-router';
 export default function AlterarSenha() {
     const { user } = useContext(AuthContext);
     const router = useRouter();
-    
+
     const [novaSenha, setNovaSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
     const [salvando, setSalvando] = useState(false);
+    const [erro, setErro] = useState('');
+    const [sucesso, setSucesso] = useState('');
 
     const handleSalvar = async () => {
+        setErro('');
+        setSucesso('');
+
         if (!novaSenha || !confirmarSenha) {
-            Alert.alert("Erro", "Preencha todos os campos.");
+            setErro("Preencha todos os campos");
+            return;
+        }
+
+        if (novaSenha.length < 6) {
+            setErro("A senha precisa ter no mínimo 6 caracteres");
             return;
         }
 
         if (novaSenha !== confirmarSenha) {
-            Alert.alert("Erro", "As senhas não coincidem.");
+            setErro("As senhas não coincidem");
             return;
         }
 
         setSalvando(true);
 
         try {
-            const dados = await AsyncStorage.getItem('user');
-            let usuarios = dados ? JSON.parse(dados) : {};
+            const dados = await AsyncStorage.getItem('@user');
+            let usuario = dados ? JSON.parse(dados) : null;
 
-            if (usuarios.email === user.email) {
-                usuarios.senha = novaSenha;
-
-                await AsyncStorage.setItem('user', JSON.stringify(usuarios));
-                
-                Alert.alert("Sucesso", "Senha alterada com sucesso!");
-                router.back(); // Volta para a tela de perfil
-            } else {
-                Alert.alert("Erro", "Usuário não encontrado no sistema.");
+            if (!usuario) {
+                setErro("Usuário não encontrado");
+                return;
             }
-        } catch (error) {
-            Alert.alert("Erro", "Não foi possível salvar a nova senha.");
+
+            usuario.senha = novaSenha;
+
+            await AsyncStorage.setItem('@user', JSON.stringify(usuario));
+
+            setSucesso("Senha alterada com sucesso!");
+
+            setTimeout(() => {
+                router.back();
+            }, 1200);
+
+        } catch {
+            setErro("Erro ao atualizar senha");
         } finally {
             setSalvando(false);
         }
@@ -75,8 +90,11 @@ export default function AlterarSenha() {
                 />
             </View>
 
-            <TouchableOpacity 
-                style={[styles.button, salvando && styles.buttonDisabled]} 
+            {erro ? <Text style={styles.error}>{erro}</Text> : null}
+            {sucesso ? <Text style={styles.success}>{sucesso}</Text> : null}
+
+            <TouchableOpacity
+                style={[styles.button, salvando && styles.buttonDisabled]}
                 onPress={handleSalvar}
                 disabled={salvando}
             >
@@ -138,5 +156,14 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    error: {
+        color: 'red',
+        marginBottom: 10,
+    },
+
+    success: {
+        color: 'green',
+        marginBottom: 10,
     },
 });

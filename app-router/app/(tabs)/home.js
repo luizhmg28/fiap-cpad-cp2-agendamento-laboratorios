@@ -1,8 +1,6 @@
-import { useCallback, useState, useEffect } from 'react';
 import { View, StyleSheet, Text, SectionList, Alert, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import { getRefresh, setRefresh } from '../../utils/refreshFlag';
+import { useContext } from 'react';
+import { AppDataContext } from '../../context/AppDataContext';
 import { Ionicons } from '@expo/vector-icons';
 
 // Caso não hajam agendamentos, eu fiz esse elemento estilo React Native só pra não ficar feio
@@ -13,93 +11,11 @@ const EmptyListPlaceholder = () => (
 )
 
 export default function Home() {
-  const [agendamentos, setAgendamentos] = useState([]);
-
-  const fetchAgendamentos = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      
-      const agendamentoKeys = keys.filter(key => /^\d{4}-\d{2}-\d{2}/.test(key));
-
-      const hojeString = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
-      const chavesParaRemover = [];
-      const chavesParaLer = [];
-
-      
-      agendamentoKeys.forEach(key => {
-        const dataChave = key.substring(0, 10); // Pega os primeiros 10 caracteres (YYYY-MM-DD)
-        if (dataChave < hojeString) {
-          chavesParaRemover.push(key);
-        } else {
-          chavesParaLer.push(key);
-        }
-      });
-
-      if (chavesParaRemover.length > 0)
-        await AsyncStorage.multiRemove(chavesParaRemover);
-
-      const dados = await AsyncStorage.multiGet(chavesParaLer);
-      const agendamentosFormatados = dados
-        .map(([_, value]) => JSON.parse(value))
-        .flat(); // Transforma as arrays de cada chave em uma lista única
-
-      setAgendamentos(agendamentosFormatados);
-    } catch (e) {
-      console.error("Erro no fetch:", e);
-    }
-  };
+  const { agendamentos, cancelarAgendamento } = useContext(AppDataContext);
 
   const handleCancelar = (item) => {
-    Alert.alert(
-      "Cancelar agendamento",
-      `Deseja realmente cancelar o horário das ${item.horario} de ${formatDate(item.data).toLowerCase()}?`,
-      [
-        { text: "Não", style: "cancel" },
-        {
-          text: "Sim",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const chave = `${item.data}-${item.lab}-${item.unidade}`;
-
-              const dados = await AsyncStorage.getItem(chave);
-              if (!dados) return;
-
-              const agendamentos = JSON.parse(dados);
-              const novosAgendamentos = agendamentos.filter(ag => ag.id !== item.id);
-
-              if (novosAgendamentos.length > 0)
-                // Se existem outros agendamentos no dia, mantém a chave
-                await AsyncStorage.setItem(chave, JSON.stringify(novosAgendamentos));
-              else
-                // Senão, remove a chave por completo
-                await AsyncStorage.removeItem(chave);
-              
-              Alert.alert("Sucesso!", "Agendamento cancelado com sucesso");
-              fetchAgendamentos();
-            } catch (e) {
-              console.error("Erro ao cancelar:", e);
-            }
-          }
-        }
-      ]
-    )
-  }
-
-  // AsyncStorage.clear()
-
-  useEffect(() => {
-    fetchAgendamentos();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (getRefresh()) {
-        fetchAgendamentos();
-        setRefresh(false);
-      }
-    }, [])
-  );
+    cancelarAgendamento(item);
+  };
 
   return (
     <View style={styles.container}>
@@ -111,7 +27,7 @@ export default function Home() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyListPlaceholder />}
         stickySectionHeadersEnabled={false} // Mantém o header rolando junto
-        
+
         renderSectionHeader={({ section }) => (
           <View style={[styles.cardWrapper, { paddingBottom: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
             <Text style={[styles.headerText, section.isHoje && styles.hojeText]}>
@@ -124,7 +40,7 @@ export default function Home() {
           const past = isPast(item.data, item.horario);
           return (
             <View style={[styles.cardWrapper, { paddingVertical: 5, borderRadius: 0 }]}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 // Só permite cancelar se não for um horário passado
                 onPress={() => !past && handleCancelar(item)}
                 activeOpacity={past ? 1 : 0.7}
@@ -134,7 +50,7 @@ export default function Home() {
                   <Text style={[styles.unidadeText, past && styles.pastText]}>{item.unidade}</Text>
                   <Text style={[styles.labText, past && styles.pastText]}>{item.lab}</Text>
                 </View>
-                
+
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={[styles.horaText, past && styles.pastText]}>{item.horario}</Text>
                   {!past && (
@@ -147,11 +63,11 @@ export default function Home() {
         }}
 
         renderSectionFooter={() => (
-          <View style={[styles.cardWrapper, { 
-            paddingTop: 5, 
-            borderTopLeftRadius: 0, 
-            borderTopRightRadius: 0, 
-            marginBottom: 20 
+          <View style={[styles.cardWrapper, {
+            paddingTop: 5,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            marginBottom: 20
           }]} />
         )}
 
@@ -172,17 +88,17 @@ const groupByDate = (agendamentos) => {
   });
 
   return Object.keys(grouped)
-  .sort()
-  .map((data) => {
-    const formatado = formatDate(data);
+    .sort()
+    .map((data) => {
+      const formatado = formatDate(data);
 
-    return {
-      id: data,
-      title: formatado,
-      isHoje: formatado === 'Hoje',
-      data: grouped[data].sort((a, b) => a.horario.localeCompare(b.horario)),
-    };
-  });
+      return {
+        id: data,
+        title: formatado,
+        isHoje: formatado === 'Hoje',
+        data: grouped[data].sort((a, b) => a.horario.localeCompare(b.horario)),
+      };
+    });
 };
 
 const formatDate = (dataString) => {
@@ -217,7 +133,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#F3F4F6' },
   header: { fontSize: 24, fontWeight: 'bold', marginBottom: 15 },
   label: { marginTop: 12, marginBottom: 6, fontSize: 13, fontWeight: '600', color: '#6B7280' },
-  
+
   cardWrapper: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 10,
@@ -229,7 +145,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
   },
-  
+
   headerText: { fontSize: 18, fontWeight: 'bold', paddingTop: 15, paddingBottom: 10 },
   hojeText: { color: '#EA1463' },
 
@@ -243,7 +159,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   pastRow: { backgroundColor: '#F3F4F6', opacity: 0.7 },
-  
+
   unidadeText: { fontWeight: 'bold', color: '#1F2937' },
   labText: { fontSize: 12, color: '#6B7280' },
   horaText: { fontWeight: '600', color: '#EA1463' },

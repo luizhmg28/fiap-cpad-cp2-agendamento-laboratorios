@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useContext, useEffect } from 'react';
 import AuthProvider, { AuthContext } from '../context/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
+import AppDataProvider from '../context/AppDataContext';
 
 function RootLayoutNav() {
     const { user, carregando } = useContext(AuthContext);
@@ -35,12 +36,12 @@ function RootLayoutNav() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen 
-                name="(perfil)" 
-                options={{ 
-                    headerShown: false, 
+            <Stack.Screen
+                name="(perfil)"
+                options={{
+                    headerShown: false,
                     presentation: 'card'
-                }} 
+                }}
             />
         </Stack>
     );
@@ -49,7 +50,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
     return (
         <AuthProvider>
-            <RootLayoutNav />
+            <AppDataProvider>
+                <RootLayoutNav />
+            </AppDataProvider>
         </AuthProvider>
     );
 }
