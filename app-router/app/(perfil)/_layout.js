@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { LogoTitle } from '../../utils/headerLogo';
+import { LogoTitle } from '../../components/LogoTitle';
 
 export default function PerfilLayout() {
     return (

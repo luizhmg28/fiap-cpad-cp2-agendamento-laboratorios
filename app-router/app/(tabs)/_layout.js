@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LogoTitle } from '../../utils/headerLogo';
+import { LogoTitle } from '../../components/LogoTitle';
 
 export default function Layout() {
   return (

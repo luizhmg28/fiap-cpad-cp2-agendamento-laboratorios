@@ -5,6 +5,7 @@ import {
 import { useContext, useState, useRef } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
+import AuthWrapper from '../../components/AuthWrapper';
 
 export default function Login() {
     const router = useRouter();
@@ -52,78 +53,66 @@ export default function Login() {
     };
 
     return (
-        <KeyboardAvoidingView 
-            style={{ flex: 1 }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView 
-                contentContainerStyle={styles.container} 
-                keyboardShouldPersistTaps="handled"
+        <AuthWrapper title="Bem-vindo" errorGeral={errors.geral}>
+            {/* CAMPO EMAIL */}
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>E-mail</Text>
+                <TextInput
+                    style={[styles.input, errors.email && styles.inputError]}
+                    placeholder='seu@email.com'
+                    value={email}
+                    onChangeText={setEmail}
+                    onBlur={() => validateField('email', email)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    onSubmitEditing={() => senhaRef.current.focus()}
+                    blurOnSubmit={false}
+                />
+                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            </View>
+
+            {/* CAMPO SENHA */}
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>Senha</Text>
+                <TextInput
+                    ref={senhaRef}
+                    style={[styles.input, errors.senha && styles.inputError]}
+                    placeholder='Digite sua senha'
+                    secureTextEntry
+                    value={senha}
+                    onChangeText={setSenha}
+                    onBlur={() => validateField('senha', senha)}
+                    returnKeyType="done"
+                    onSubmitEditing={handleLogin}
+                />
+                {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
+            </View>
+
+            {/* BOTÃO LOGIN */}
+            <TouchableOpacity
+                style={[styles.button, loading && { opacity: 0.7 }]}
+                onPress={handleLogin}
+                disabled={loading}
             >
-                <Text style={styles.header}>Bem-vindo</Text>
+                {loading ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <Text style={styles.buttonText}>Entrar</Text>
+                )}
+            </TouchableOpacity>
 
-                {/* ERRO GERAL */}
-                {errors.geral && <Text style={styles.errorGeral}>{errors.geral}</Text>}
-
-                {/* CAMPO EMAIL */}
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>E-mail</Text>
-                    <TextInput
-                        style={[styles.input, errors.email && styles.inputError]}
-                        placeholder='seu@email.com'
-                        value={email}
-                        onChangeText={setEmail}
-                        onBlur={() => validateField('email', email)}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        returnKeyType="next"
-                        onSubmitEditing={() => senhaRef.current.focus()}
-                        blurOnSubmit={false}
-                    />
-                    {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-                </View>
-
-                {/* CAMPO SENHA */}
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Senha</Text>
-                    <TextInput
-                        ref={senhaRef}
-                        style={[styles.input, errors.senha && styles.inputError]}
-                        placeholder='Digite sua senha'
-                        secureTextEntry
-                        value={senha}
-                        onChangeText={setSenha}
-                        onBlur={() => validateField('senha', senha)}
-                        returnKeyType="done"
-                        onSubmitEditing={handleLogin}
-                    />
-                    {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
-                </View>
-
-                <TouchableOpacity
-                    style={[styles.button, loading && { opacity: 0.7 }]}
-                    onPress={handleLogin}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={styles.buttonText}>Entrar</Text>
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                    onPress={() => router.push('/cadastro')} 
-                    style={styles.linkContainer} 
-                    activeOpacity={.7}
-                >
-                    <Text style={styles.linkText}>
-                        Ainda não tem uma conta? <Text style={styles.linkTextDestaque}>Cadastre-se</Text>
-                    </Text>
-                </TouchableOpacity>
-
-            </ScrollView>
-        </KeyboardAvoidingView>
+            {/* LINK CADASTRAR */}
+            <TouchableOpacity 
+                onPress={() => router.push('/cadastro')} 
+                style={styles.linkContainer} 
+                activeOpacity={.7}
+            >
+                <Text style={styles.linkText}>
+                    Ainda não tem uma conta? <Text style={styles.linkTextDestaque}>Cadastre-se</Text>
+                </Text>
+            </TouchableOpacity>
+        </AuthWrapper>
     );
 }
 
