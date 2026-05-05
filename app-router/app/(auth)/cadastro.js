@@ -1,5 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useContext, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useContext, useState, useRef } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
 
@@ -7,95 +7,176 @@ export default function Cadastro() {
     const { register } = useContext(AuthContext);
     const router = useRouter();
 
+    // Estados dos campos
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
-
     const [errors, setErrors] = useState({});
 
-    function validate() {
-        let newErrors = {};
+    // Referências para pular de campo
+    const emailRef = useRef();
+    const senhaRef = useRef();
+    const confirmarSenhaRef = useRef();
 
-        if (!nome) newErrors.nome = "Nome obrigatório";
+    // Configurações de Validação
+    const regexEmail = /^(?:rm|pf)(\d+)@fiap\.com\.br$/;
+    const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
-        if (!email) newErrors.email = "E-mail obrigatório";
-        else if (!email.includes("@")) newErrors.email = "E-mail inválido";
+    // Função de validação individual por campo
+    const validateField = (field, value) => {
+        let error = "";
 
-        if (!senha) newErrors.senha = "Senha obrigatória";
-        else if (senha.length < 6) newErrors.senha = "Mínimo 6 caracteres";
-
-        if (confirmarSenha !== senha) {
-            newErrors.confirmarSenha = "Senhas não coincidem";
+        if (field === 'nome' && !value.trim()) error = "Nome é obrigatório";
+        
+        if (field === 'email') {
+            if (!value) error = "E-mail obrigatório";
+            else if (!regexEmail.test(value)) error = "E-mail inválido";
         }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }
+        if (field === 'senha') {
+            if (!value) error = "Senha obrigatória";
+            else if (!regexSenha.test(value)) error = "Mínimo 6 caracteres (letras e números)";
+        }
+
+        if (field === 'confirmarSenha' && value !== senha) {
+            error = "As senhas não coincidem";
+        }
+
+        setErrors(prev => ({ ...prev, [field]: error }));
+    };
 
     const handleCadastro = async () => {
-        if (!validate()) return;
+        // Valida tudo uma última vez antes de enviar, só por precaução
+        validateField('nome', nome);
+        validateField('email', email);
+        validateField('senha', senha);
+        validateField('confirmarSenha', confirmarSenha);
 
-        const res = await register({ nome, email, senha });
-
-        if (res?.error) {
-            setErrors({ geral: res.error });
-            return;
+        if (nome && email && senha && senha === confirmarSenha && !errors.email && !errors.senha) {
+            const res = await register({ nome, email, senha });
+            if (res?.error) setErrors({ geral: res.error });
+            else router.replace('/login');
         }
-
-        router.replace('/login');
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.header}>Cadastro</Text>
+        <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+                <Text style={styles.header}>Cadastro</Text>
 
-            {errors.geral && <Text style={styles.error}>{errors.geral}</Text>}
+                {/* CAMPO NOME */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Nome</Text>
+                    <TextInput 
+                        style={[styles.input, errors.nome && styles.inputError]}
+                        value={nome}
+                        placeholder='Ex: João Silva'
+                        onChangeText={setNome}
+                        onBlur={() => validateField('nome', nome)}
+                        returnKeyType="next"
+                        onSubmitEditing={() => emailRef.current.focus()} // Pula para o próximo
+                        blurOnSubmit={false}
+                    />
+                    {errors.nome && <Text style={styles.errorText}>{errors.nome}</Text>}
+                </View>
 
-            <TextInput style={styles.input} placeholder="Nome" value={nome} onChangeText={setNome} />
-            {errors.nome && <Text style={styles.error}>{errors.nome}</Text>}
+                {/* CAMPO EMAIL */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>E-mail</Text>
+                    <TextInput 
+                        ref={emailRef}
+                        style={[styles.input, errors.email && styles.inputError]}
+                        placeholder='Ex: rm123456@fiap.com.br'
+                        value={email}
+                        onChangeText={setEmail}
+                        onBlur={() => validateField('email', email)}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        returnKeyType="next"
+                        onSubmitEditing={() => senhaRef.current.focus()}
+                        blurOnSubmit={false}
+                    />
+                    {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                </View>
 
-            <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-            {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+                {/* CAMPO SENHA */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Senha</Text>
+                    <TextInput 
+                        ref={senhaRef}
+                        style={[styles.input, errors.senha && styles.inputError]}
+                        placeholder='Mínimo de 6 caracteres'
+                        value={senha}
+                        onChangeText={setSenha}
+                        onBlur={() => validateField('senha', senha)}
+                        secureTextEntry
+                        returnKeyType="next"
+                        onSubmitEditing={() => confirmarSenhaRef.current.focus()}
+                        blurOnSubmit={false}
+                        autoCapitalize='none'
+                    />
+                    {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
+                </View>
 
-            <TextInput style={styles.input} placeholder="Senha" value={senha} secureTextEntry onChangeText={setSenha} />
-            {errors.senha && <Text style={styles.error}>{errors.senha}</Text>}
+                {/* CAMPO CONFIRMAR SENHA */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Confirmar Senha</Text>
+                    <TextInput 
+                        ref={confirmarSenhaRef}
+                        style={[styles.input, errors.confirmarSenha && styles.inputError]}
+                        placeholder='Confirmar senha'
+                        value={confirmarSenha}
+                        onChangeText={setConfirmarSenha}
+                        onBlur={() => validateField('confirmarSenha', confirmarSenha)}
+                        secureTextEntry
+                        returnKeyType="done"
+                        onSubmitEditing={handleCadastro}
+                        autoCapitalize='none'
+                    />
+                    {errors.confirmarSenha && <Text style={styles.errorText}>{errors.confirmarSenha}</Text>}
+                </View>
 
-            <TextInput style={styles.input} placeholder="Confirmar Senha" value={confirmarSenha} secureTextEntry onChangeText={setConfirmarSenha} />
-            {errors.confirmarSenha && <Text style={styles.error}>{errors.confirmarSenha}</Text>}
+                {/* BOTÃO CADASTRAR */}
+                <TouchableOpacity style={styles.button} onPress={handleCadastro}>
+                    <Text style={styles.buttonText}>Cadastrar</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={handleCadastro} disabled={!nome || !email || !senha || !confirmarSenha}>
-                <Text style={styles.buttonText}>Cadastrar</Text>
-            </TouchableOpacity>
-        </View>
+                {/* LOGIN */}
+                <TouchableOpacity 
+                    style={styles.linkContainer} 
+                    onPress={() => router.back()} 
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.linkText}>
+                        Já possui uma conta? <Text style={styles.linkTextDestaque}>Entrar</Text>
+                    </Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, flex: 1, justifyContent: 'center', backgroundColor: '#F3F4F6' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
+    container: { padding: 20, flexGrow: 1, justifyContent: 'center', backgroundColor: '#F3F4F6' },
+    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
 
-  input: {
-    backgroundColor: '#fff',
-    padding: 15,
-    marginBottom: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
+    // Inputs
+    inputGroup: { marginBottom: 15 },
+    label: { fontSize: 14, color: '#4B5563', marginBottom: 5, fontWeight: '600' },
+    input: { backgroundColor: '#fff', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
+    inputError: { borderColor: '#EF4444' },
+    errorText: { color: '#EF4444', fontSize: 12, marginTop: 4 },
 
-  error: {
-    color: 'red',
-    marginBottom: 10,
-    fontSize: 12,
-  },
+    // Botão cadastrar
+    button: { backgroundColor: '#EA1463', padding: 15, borderRadius: 8, marginTop: 10 },
+    buttonText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
 
-  button: {
-    backgroundColor: '#EA1463',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-
-  buttonText: { color: '#fff', textAlign: 'center' },
+    // Link login
+    linkContainer: { marginTop: 20, padding: 10, alignItems: 'center' },
+    linkText: { fontSize: 15, color: '#4B5563' },
+    linkTextDestaque: { color: '#2563EB', fontWeight: 'bold' },
 });
