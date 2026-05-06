@@ -29,7 +29,7 @@ export default function MinhaConta() {
 
         <View style={styles.avatarWrapper}>
           <Image
-            source={ require('../../assets/user_photo.png') }
+            source={ require('../../assets/user-profile-icon.avif') }
             style={styles.avatar}
           />
         </View>
@@ -94,9 +94,10 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 180,
-    height: 180,
+    width: 245,
+    height: 245,
     borderRadius: 90,
+    zIndex: -1
   },
 
   name: {
