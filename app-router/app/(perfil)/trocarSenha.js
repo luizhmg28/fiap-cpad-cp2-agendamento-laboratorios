@@ -4,8 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
 
-// Como não há um banco de dados (e não faz muita diferença trocar ou não a senha), a página serve mais como um mock
-
 export default function AlterarSenha() {
     const { user } = useContext(AuthContext);
     const router = useRouter();
@@ -17,6 +15,8 @@ export default function AlterarSenha() {
     const [sucesso, setSucesso] = useState('');
 
     const handleSalvar = async () => {
+        if (!user) return;
+
         setErro('');
         setSucesso('');
 
@@ -38,21 +38,25 @@ export default function AlterarSenha() {
         setSalvando(true);
 
         try {
-            const dados = await AsyncStorage.getItem('@user');
-            let usuario = dados ? JSON.parse(dados) : null;
+            const dados = await AsyncStorage.getItem('users');
+            const usuarios = dados ? JSON.parse(dados) : [];
 
-            if (!usuario) {
+            const index = usuarios.findIndex(u => u.email === user.email);
+
+            if (index === -1) {
                 setErro("Usuário não encontrado");
+                setSalvando(false)
                 return;
             }
 
-            usuario.senha = novaSenha;
+            usuarios[index].senha = novaSenha;
 
-            await AsyncStorage.setItem('@user', JSON.stringify(usuario));
+            await AsyncStorage.setItem('users', JSON.stringify(usuarios));
 
             setSucesso("Senha alterada com sucesso!");
 
             setTimeout(() => {
+                setSucesso('');
                 router.back();
             }, 1200);
 
