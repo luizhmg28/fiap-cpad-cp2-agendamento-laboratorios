@@ -14,7 +14,18 @@ export default function Home() {
   const { agendamentos, cancelarAgendamento } = useContext(AppDataContext);
 
   const handleCancelar = (item) => {
-    cancelarAgendamento(item);
+    Alert.alert(
+      "Cancelar agendamento",
+      `Deseja realmente cancelar sua reserva no ${item.lab} às ${item.horario}?`,
+      [
+        { text: "Voltar", style: "cancel" },
+        {
+          text: "Cancelar",
+          style: "destructive",
+          onPress: () => cancelarAgendamento(item)
+        }
+      ]
+    )
   };
 
   return (

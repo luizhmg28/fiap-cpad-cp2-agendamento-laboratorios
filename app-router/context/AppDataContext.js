@@ -1,5 +1,6 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from './AuthContext';
 
 export const AppDataContext = createContext();
 
@@ -7,17 +8,26 @@ export default function AppDataProvider({ children }) {
   const [agendamentos, setAgendamentos] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { user } = useContext(AuthContext);
+
   useEffect(() => {
-    loadAgendamentos();
-  }, []);
+    if (user)
+      loadAgendamentos();
+    else
+      setAgendamentos([]);
+  }, [user]);
 
   const loadAgendamentos = async () => {
+    if (!user) return;
+
     try {
+      setLoading(true);
       const keys = await AsyncStorage.getAllKeys();
 
-      const agendamentoKeys = keys.filter(key =>
-        /^\d{4}-\d{2}-\d{2}/.test(key)
-      );
+      // Chave para tornar cada agendamento único para cada usuário
+      const prefixo = `@user:${user.email}`;
+
+      const agendamentoKeys = keys.filter(key => key.startsWith(prefixo));
 
       const dados = await AsyncStorage.multiGet(agendamentoKeys);
 
@@ -34,49 +44,82 @@ export default function AppDataProvider({ children }) {
   };
 
   const criarAgendamento = async (novoAgendamento) => {
+    if (!user) return;
+
+    setLoading(true);
+
     const { data, lab, unidade, horario } = novoAgendamento;
-    const chave = `${data}-${lab}-${unidade}`;
+
+    const chaveGlobal = `@global:ocupacao:${data}-${lab}-${unidade}`;
+    const chavePrivada = `@user:${user.email}:${data}-${lab}-${unidade}`;
 
     try {
-      const dados = await AsyncStorage.getItem(chave);
-      let lista = dados ? JSON.parse(dados) : [];
+      // Verifica se foi ocupado por alguém (chave global)
+      const dadosGlobais = await AsyncStorage.getItem(chaveGlobal);
+      const ocupacaoGlobal = dadosGlobais ? JSON.parse(dadosGlobais) : [];
 
-      // evita duplicado
-      if (lista.some(a => a.horario === horario)) {
+      if (ocupacaoGlobal.some(a => a.horario === horario))
         return { error: 'Horário já ocupado' };
-      }
 
-      lista.push(novoAgendamento);
+      // Caso esteja livre, grava primeiro na chave global
+      const reservaPrivada = { ...novoAgendamento, userEmail: user.email, id: Date.now().toLocaleString('en-CA') };
+      
+      ocupacaoGlobal.push(reservaPrivada);
+      await AsyncStorage.setItem(chaveGlobal, JSON.stringify(ocupacaoGlobal));
 
-      await AsyncStorage.setItem(chave, JSON.stringify(lista));
+      // Finalmente, grava-se na chave privada
+      const dadosPrivados = await AsyncStorage.getItem(chavePrivada);
+      const agendamentosPrivados = dadosPrivados ? JSON.parse(dadosPrivados) : [];
 
+      agendamentosPrivados.push(reservaPrivada);
+      await AsyncStorage.setItem(chavePrivada, JSON.stringify(agendamentosPrivados));
+
+      // Atualiza UI
       await loadAgendamentos();
 
       return { success: true };
     } catch (e) {
       return { error: 'Erro ao salvar agendamento' };
+    } finally {
+      setLoading(false);
     }
   };
 
   const cancelarAgendamento = async (item) => {
-    const chave = `${item.data}-${item.lab}-${item.unidade}`;
+    if (!user) return;
+    setLoading(true);
+
+    // Remoção deve acontecer em duas chaves simultaneamente
+    const chaveGlobal = `@global:ocupacao:${item.data}-${item.lab}-${item.unidade}`
+    const chavePrivada = `@user:${user.email}:${item.data}-${item.lab}-${item.unidade}`;
 
     try {
-      const dados = await AsyncStorage.getItem(chave);
-      if (!dados) return;
+      const dadosGlobais = await AsyncStorage.getItem(chaveGlobal)
+      const dadosPrivados = await AsyncStorage.getItem(chavePrivada);
 
-      const lista = JSON.parse(dados);
-      const novaLista = lista.filter(a => a.id !== item.id);
+      if (dadosGlobais) {
+        const listaGlobal = JSON.parse(dadosGlobais);
+        // Filtra por horário e dono só para garantir
+        const novaListaGlobal = listaGlobal.filter(a => !(a.horario === item.horario && a.userEmail === user.email));
 
-      if (novaLista.length > 0) {
-        await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
-      } else {
-        await AsyncStorage.removeItem(chave);
+        if (novaListaGlobal.length > 0)
+          await AsyncStorage.setItem(chaveGlobal, JSON.stringify(novaListaGlobal));
+        else
+          await AsyncStorage.removeItem(chaveGlobal);
+      }
+
+      if (dadosPrivados) {
+        const listaPrivada = JSON.parse(dadosPrivados);
+        const novaListaPrivada = listaPrivada.filter(a => a.id !== item.id);
+
+        await AsyncStorage.setItem(chavePrivada, JSON.stringify(novaListaPrivada));
       }
 
       await loadAgendamentos();
     } catch (e) {
       console.log('Erro ao cancelar:', e);
+    } finally {
+      setLoading(false);
     }
   };
 

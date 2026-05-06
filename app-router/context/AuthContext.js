@@ -25,13 +25,11 @@ export default function AuthProvider({ children }) {
         }
     };
 
-    // ✅ REGISTER
     const register = async ({ nome, email, senha }) => {
         try {
             const dados = await AsyncStorage.getItem('users');
             let usuarios = dados ? JSON.parse(dados) : [];
 
-            // 🔒 normaliza email (evita duplicado tipo A@a.com vs a@a.com)
             const emailNormalizado = email.trim().toLowerCase();
 
             if (usuarios.some(u => u.email === emailNormalizado)) {
@@ -55,7 +53,6 @@ export default function AuthProvider({ children }) {
         }
     };
 
-    // ✅ LOGIN
     const login = async (email, senha) => {
         try {
             const dados = await AsyncStorage.getItem('users');
@@ -81,7 +78,6 @@ export default function AuthProvider({ children }) {
         }
     };
 
-    // ✅ LOGOUT
     const logout = async () => {
         try {
             await AsyncStorage.removeItem('userLogado');

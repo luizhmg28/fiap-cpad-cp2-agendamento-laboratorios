@@ -31,7 +31,7 @@ export default function Agendar() {
   const carregarHorarios = async () => {
     if (!data || !lab || !unidade) return;
 
-    const chave = `${data}-${lab}-${unidade}`;
+    const chave = `@global:ocupacao:${data}-${lab}-${unidade}`;
 
     try {
       const dadosSalvos = await AsyncStorage.getItem(chave);
@@ -84,11 +84,10 @@ export default function Agendar() {
     setSucesso('Agendamento realizado com sucesso!');
     setHorario(null);
 
-    await criarAgendamento(novoAgendamento);
-
     await carregarHorarios();
 
     setTimeout(() => {
+      setSucesso('');
       router.push('/home');
     }, 1200);
   };
