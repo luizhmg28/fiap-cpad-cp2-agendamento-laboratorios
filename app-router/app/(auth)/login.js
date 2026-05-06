@@ -59,7 +59,7 @@ export default function Login() {
                 <Text style={styles.label}>E-mail</Text>
                 <TextInput
                     style={[styles.input, errors.email && styles.inputError]}
-                    placeholder='seu@email.com'
+                    placeholder='email@institucional.com'
                     value={email}
                     onChangeText={setEmail}
                     onBlur={() => validateField('email', email)}
@@ -85,6 +85,7 @@ export default function Login() {
                     onBlur={() => validateField('senha', senha)}
                     returnKeyType="done"
                     onSubmitEditing={handleLogin}
+                    autoCapitalize='none'
                 />
                 {errors.senha && <Text style={styles.errorText}>{errors.senha}</Text>}
             </View>
