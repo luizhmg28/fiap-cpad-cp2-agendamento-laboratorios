@@ -20,7 +20,7 @@ export default function Cadastro() {
     const confirmarSenhaRef = useRef();
 
     // Configurações de Validação
-    const regexEmail = /^(?:rm|pf)(\d+)@fiap\.com\.br$/;
+    const regexEmail = /^(?:rm|pf)\d+@fiap\.com\.br$/i;
     const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
     // Função de validação individual por campo
