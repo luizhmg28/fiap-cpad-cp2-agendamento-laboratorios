@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
 export default function AlterarSenha() {
     const { user } = useContext(AuthContext);
@@ -52,6 +53,9 @@ export default function AlterarSenha() {
             usuarios[index].senha = novaSenha;
 
             await AsyncStorage.setItem('users', JSON.stringify(usuarios));
+
+            const usuarioAtualizado = { ...user[index] };
+            await SecureStore.setItemAsync('user_session', JSON.stringify(usuarioAtualizado));
 
             setSucesso("Senha alterada com sucesso!");
 

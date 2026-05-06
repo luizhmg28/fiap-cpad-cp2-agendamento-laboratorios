@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 export const AuthContext = createContext();
 
@@ -13,7 +14,7 @@ export default function AuthProvider({ children }) {
 
     const carregarUser = async () => {
         try {
-            const userGuardado = await AsyncStorage.getItem('userLogado');
+            const userGuardado = await SecureStore.getItemAsync('userLogado');
 
             if (userGuardado) {
                 setUser(JSON.parse(userGuardado));
@@ -68,7 +69,7 @@ export default function AuthProvider({ children }) {
                 return { error: 'E-mail ou senha inválidos' };
             }
 
-            await AsyncStorage.setItem('userLogado', JSON.stringify(usuario));
+            await SecureStore.setItemAsync('userLogado', JSON.stringify(usuario));
             setUser(usuario);
 
             return { success: true };
@@ -80,7 +81,7 @@ export default function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await AsyncStorage.removeItem('userLogado');
+            await SecureStore.deleteItemAsync('userLogado');
             setUser(null);
         } catch (e) {
             console.log('Erro no logout:', e);
