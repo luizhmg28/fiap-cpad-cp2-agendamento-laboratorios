@@ -12,8 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router"
 
 export default function MinhaConta() {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const router =  useRouter();
+
+  const extrairRM = (email) => {
+    if (!email) return "000000";
+    const match = email.match(/rm(\d+)/i);
+    return match ? match[1] : "Não identificado";
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -23,15 +29,13 @@ export default function MinhaConta() {
 
         <View style={styles.avatarWrapper}>
           <Image
-            source={
-              require('../../assets/user_photo.png') 
-            }
+            source={ require('../../assets/user_photo.png') }
             style={styles.avatar}
           />
         </View>
 
-        <Text style={styles.name}>Luiz Graça</Text>
-        <Text style={styles.rm}>RM: 123456</Text>
+        <Text style={styles.name}>{user?.nome}</Text>
+        <Text style={styles.rm}>RM: {extrairRM(user?.email)}</Text>
 
       </View>
 
@@ -60,8 +64,8 @@ const styles = StyleSheet.create({
   container: {
     padding: 30,
     backgroundColor: '#F3F4F6',
-    flexGrow: 0.7,
-    justifyContent: 'space-between',
+    flexGrow: 1,
+    justifyContent: 'center',
   },
 
   profileCard: {
@@ -75,13 +79,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
-    elevation: 25,
+    elevation: 5,
   },
 
   avatarWrapper: {
-    width: 270,
-    height: 270,
-    borderRadius: 135,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     borderWidth: 4,
     borderColor: '#EA1463', 
     justifyContent: 'center',
@@ -90,9 +94,9 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 250,
-    height: 250,
-    borderRadius: 125,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
   },
 
   name: {
@@ -102,8 +106,9 @@ const styles = StyleSheet.create({
   },
 
   rm: {
-    fontSize: 15,
-    color: '#6B7280',
+    fontSize: 18,
+    // fontWeight: 600,
+    color: '#EA1463',
     marginTop: 6,
   },
 
@@ -111,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 15,
-    marginTop: 20,
+    marginTop: 40,
 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
