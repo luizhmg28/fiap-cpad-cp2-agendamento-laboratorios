@@ -1,3 +1,59 @@
+Minas Gerais
+luizhmg_28
+Disponível
+
+index
+ — 23/03/2026 02:09
+dei push 🙏
+index
+ — 25/03/2026 22:18
+
+# Agendamento de laboratórios FIAP
+
+Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.fiap.com.br), visando facilitar o gerencimento de salas ocupadas e remover barreiras burocráticas que possam atrasar e, eventualmente, inviabilizar o processo.
+
+## Funcionalidades
+
+README.md
+4 KB
+index
+ — 28/03/2026 15:37
+opa
+liga quando estiver pronto
+Minas Gerais
+ iniciou uma chamada que durou 4 horas. — 28/03/2026 15:37
+Minas Gerais — 28/03/2026 16:31
+https://drive.google.com/drive/folders/144j9aPt8jlw0cHs9XxUfNzimUMcWi4s7
+Google Drive
+index
+ — 28/03/2026 19:12
+print(X[i], "->", y_pred, "|", y[i])
+index
+ — Ontem às 16:07
+
+# Agendamento de laboratórios FIAP
+
+Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.fiap.com.br), visando facilitar o gerencimento de salas ocupadas e remover barreiras burocráticas que possam atrasar e, eventualmente, inviabilizar o processo.
+
+## Funcionalidades
+
+README.md
+6 KB
+depois só mandar o link do repositório no teams https://github.com/luizhmg28/fiap-cpad-cp2-agendamento-laboratorios
+index
+ — 17:30
+
+﻿
+index
+__index
+Zoe/Player
+ 
+ 
+ 
+ 
+ 
+ 
+Learning about myself
 
 # Agendamento de laboratórios FIAP
 
@@ -11,10 +67,23 @@ Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.
     - Laboratório;
     - Unidade.
 - Cancelamento de agendamento;
-- Login (apenas uma simulação, já que não foi implementado nenhum back-end);
-- Alteração de senha,
+- Alteração de senha;
+- Login;
+- Cadastro.
 
 ## Decisões técnicas
+
+### Contextos
+
+- **Autenticação**:
+  - Gerenciamento do estado de autenticação e persistência de dados do usuário na aplicação;
+  - Mantém as informações do usuário logado e o estado de carregamento inicial;
+  - Utiliza do `AsyncStorage` para armazenar os dados locais de usuários cadastrados.
+
+- **Dados da aplicação**
+  - Gerencia a lógica de negócios central da aplicação, focado na reserva de agendamentos;
+  - Consome o contexto de Autenticação para segregar informações com base no usuário;
+    - Utiliza de chaves globais e privadas para fazer a diferenciação de estados.
 
 ### Estrutura
 O projeto foi estruturado para comportar funcionalidades do [Expo](https://expo.dev), conforme mostra a estruta de pastas abaixo:
@@ -24,6 +93,7 @@ app-router/
 |   app/
 |   |   (auth)/
 |   |   |   _layout.js
+|   |   |   cadastro.js
 |   |   |   login.js
 |   |   (perfil)/
 |   |   |   _layout.js
@@ -36,10 +106,13 @@ app-router/
 |   |   _layout.js
 |   |   index.js
 |   assets/
+|   components/
+|   |   AuthWrapper.js
+|   |   LogoTitle.js
 |   context/
+|   |   AppDataContext.js
 |   |   AuthContext.js
 |   utils/
-|   |   headerLogo.js
 |   |   refreshFlag.js
 ```
 
@@ -55,6 +128,9 @@ Para navegar pelo aplicativo, o modo principal foi o uso de ***Tabs*** e ***Stac
 **Tela de login** \
 <img src="./screenshots/login.png" alt="Tela de login" height="500"/>
 
+**Tela de Cadastro** \
+<img src="./screenshots/cadastro.png" alt="Tela de cadastro" height="500"/>
+
 **Tela inicial** \
 <img src="./screenshots/home.png" alt="Tela inicial" height="500"/>
 
@@ -66,6 +142,18 @@ Para navegar pelo aplicativo, o modo principal foi o uso de ***Tabs*** e ***Stac
 
 **Tela de alteração de senha** \
 <img src="./screenshots/senha.png" alt="Tela de alterar senha" height="500"/>
+
+## Vídeo de demonstração
+
+Para ver o aplicativo funcionando, basta acessar o vídeo disponível [aqui](https://youtube.com/shorts/x9itm-0Awpk).
+
+## Diferencial implementado
+
+Como diferencial do projeto, utilizou-se o Expo SecureStore para privatizar o token da sessão do usuário, prevenindo, assim, adulterações de dados de *malwares* enquanto o aplicativo estiver aberto.
+
+O motivo dessa escolha deve-se ao fato de, embora não ser a versão final do sistema, alterações de dados compartilhados comprometeriam todos os usuários do sistema, desde simples alterações nas datas agendadas, até o compartilhamento de senhas de pessoas.
+
+A implementação foi feita diretamente no contexto global e na página de alteração de senha, desse modo criando sessões únicas e seguras para cada usuário. Por ter um tamanho de chave menor (~2KB), esse foi o único uso implementado.
 
 ## Autores
 
@@ -113,3 +201,7 @@ Para rodar a partir deste ponto, é necessário utilizar um emulador de celular.
 Considerado o ponto atual do projeto, com mais tempo, a equipe desenvolvedora poderia seguir na implementação de um *back-end* e banco de dados robustos.
 
 Além disso, fazer verificações reais e conexões com o sistema da FIAP para lidar com o perfil do usuário seriam pontos importantes a serem levados em conta.
+
+Por fim, a adição de um sistema de notificações é vital para a robustez completa a nível de UX.
+README.md
+6 KB
