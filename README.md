@@ -4,30 +4,6 @@ Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.
 
 ## Funcionalidades
 
-README.md
-6 KB
-depois só mandar o link do repositório no teams https://github.com/luizhmg28/fiap-cpad-cp2-agendamento-laboratorios
-index
- — 17:30
-
-﻿
-index
-__index
-Zoe/Player
- 
- 
- 
- 
- 
- 
-Learning about myself
-
-# Agendamento de laboratórios FIAP
-
-Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.fiap.com.br), visando facilitar o gerencimento de salas ocupadas e remover barreiras burocráticas que possam atrasar e, eventualmente, inviabilizar o processo.
-
-## Funcionalidades
-
 - Agendamento de laboratórios por:
     - Horário;
     - Dia;
