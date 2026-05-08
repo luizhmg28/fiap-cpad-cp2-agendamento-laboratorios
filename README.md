@@ -1,36 +1,3 @@
-Minas Gerais
-luizhmg_28
-Disponível
-
-index
- — 23/03/2026 02:09
-dei push 🙏
-index
- — 25/03/2026 22:18
-
-# Agendamento de laboratórios FIAP
-
-Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.fiap.com.br), visando facilitar o gerencimento de salas ocupadas e remover barreiras burocráticas que possam atrasar e, eventualmente, inviabilizar o processo.
-
-## Funcionalidades
-
-README.md
-4 KB
-index
- — 28/03/2026 15:37
-opa
-liga quando estiver pronto
-Minas Gerais
- iniciou uma chamada que durou 4 horas. — 28/03/2026 15:37
-Minas Gerais — 28/03/2026 16:31
-https://drive.google.com/drive/folders/144j9aPt8jlw0cHs9XxUfNzimUMcWi4s7
-Google Drive
-index
- — 28/03/2026 19:12
-print(X[i], "->", y_pred, "|", y[i])
-index
- — Ontem às 16:07
-
 # Agendamento de laboratórios FIAP
 
 Um simples aplicativo *mobile* para agendar laboratórios na [FIAP](https://www.fiap.com.br), visando facilitar o gerencimento de salas ocupadas e remover barreiras burocráticas que possam atrasar e, eventualmente, inviabilizar o processo.
@@ -203,5 +170,3 @@ Considerado o ponto atual do projeto, com mais tempo, a equipe desenvolvedora po
 Além disso, fazer verificações reais e conexões com o sistema da FIAP para lidar com o perfil do usuário seriam pontos importantes a serem levados em conta.
 
 Por fim, a adição de um sistema de notificações é vital para a robustez completa a nível de UX.
-README.md
-6 KB
