@@ -100,8 +100,8 @@ A implementação foi feita diretamente no contexto global e na página de alter
 
 ## Autores
 
-- [Gustavo Hackime Costa](https://www.github.com/IAmIndex)
-- [Luiz Henrique Macedo Graça](https://github.com/luizhmg28)
+- [Gustavo Hackime Costa](https://www.github.com/IAmIndex) (RM 563751)
+- [Luiz Henrique Macedo Graça](https://github.com/luizhmg28) (RM 564704)
 
 
 ## Apêndice
